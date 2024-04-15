@@ -39,15 +39,20 @@
         </div>
         <div class="card__content">
           <p><strong>Username:</strong> {{ userData.username }}</p>
-
-          <p><strong>Email:</strong> {{ userData.email }}</p>
-          <p><strong>Phone:</strong> {{ userData.phone }}</p>
-          <p class="section-title">Address</p>
+          <p>
+            <strong>Email:</strong>
+            <a href="mailto:{{ userData.email }}">{{ userData.email }}</a>
+          </p>
+          <p>
+            <strong>Phone:</strong>
+            <a href="tel:{{ userData.phone }}">{{ userData.phone }}</a>
+          </p>
+          <p class="section-title">Address:</p>
           <p><strong>Street:</strong> {{ userData.address.street }}</p>
           <p><strong>Suite:</strong> {{ userData.address.suite }}</p>
           <p><strong>City:</strong> {{ userData.address.city }}</p>
           <p><strong>Zipcode:</strong> {{ userData.address.zipcode }}</p>
-          <p class="section-title">Company</p>
+          <p class="section-title">Company:</p>
           <p><strong>Name:</strong> {{ userData.company.name }}</p>
           <p>
             <strong>Catchphrase:</strong> {{ userData.company.catchPhrase }}
@@ -452,6 +457,7 @@ p {
 .card .section-title {
   font-weight: bold;
   color: #555;
+  margin-top: 10px;
 }
 
 .list {
