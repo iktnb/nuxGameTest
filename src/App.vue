@@ -57,8 +57,15 @@
       </div>
 
       <div class="card">
-        <div class="card__header">
+        <div class="card__header flex items-center">
           <h2 class="card__title">User list</h2>
+          <button
+            class="button button--small button--add"
+            v-if="!newTotoStatus"
+            @click="createNewTodoHandler"
+          >
+            Create
+          </button>
         </div>
 
         <div class="card__content">
@@ -105,6 +112,32 @@
             <li class="list__item list__item--header">
               <p class="list__title">Title</p>
               <p class="list__title">Status</p>
+            </li>
+            <li class="list__item list__item--new" v-if="newTotoStatus">
+              <span></span>
+              <input
+                v-model.trim="todo.title"
+                class="list__field"
+                type="text"
+                @keyup.enter="addTodo"
+                @keyup.esc="resetNewTodo"
+              />
+
+              <span
+                @click="() => (todo.completed = !todo.completed)"
+                :class="`list__badge list__badge--new ${
+                  todo.completed ? 'todo' : 'done'
+                }`"
+              >
+                {{ todo.completed ? "Done" : "Todo" }}
+              </span>
+              <button
+                :disabled="todo.title.length < 1"
+                @click="addTodo"
+                class="button button--small"
+              >
+                Save
+              </button>
             </li>
             <li class="list__item" v-for="todo of todos" :key="todo.id">
               <FavoriteIcon
@@ -239,6 +272,37 @@ function getFavoriteIdsFromLocalStorage() {
   }
 }
 
+const newTotoStatus = ref(false);
+
+function createNewTodoHandler() {
+  newTotoStatus.value = !newTotoStatus.value;
+}
+const todo = reactive({
+  title: "",
+  completed: false,
+});
+
+function resetNewTodo() {
+  todo.title = "";
+  todo.completed = false;
+  newTotoStatus.value = false;
+}
+
+async function addTodo() {
+  if (todo.title.length < 1) return;
+
+  try {
+    const { data } = await axis.post(
+      "https://jsonplaceholder.typicode.com/todos",
+      todo
+    );
+
+    todos.value.unshift(data);
+    resetNewTodo();
+  } catch (error) {
+    console.error(error);
+  }
+}
 onMounted(() => {
   register();
   fetchTodo();
@@ -316,6 +380,7 @@ p {
 }
 
 .button {
+  font-family: inherit;
   background-color: #519945;
   border-radius: 5px;
   border: none;
@@ -324,6 +389,24 @@ p {
   font-weight: 600;
   line-height: 21px;
   cursor: pointer;
+}
+
+.button[disabled] {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.button--small {
+  padding: 2px;
+  font-size: 15px;
+  font-weight: 400;
+  text-align: center;
+}
+.button--add {
+  background-color: #519945;
+  width: 100px;
+  text-decoration: solid;
+  text-transform: uppercase;
 }
 
 .card {
@@ -345,6 +428,14 @@ p {
   justify-content: space-between;
   background-color: #333;
   color: #fff;
+}
+
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
 }
 
 .card__title {
@@ -404,6 +495,10 @@ p {
   text-align: center;
 }
 
+.list__badge--new {
+  cursor: pointer;
+}
+
 .list__badge.done {
   background-color: #f00;
 }
@@ -440,6 +535,13 @@ p {
   opacity: 1;
 }
 
+.list__item--new {
+  display: grid;
+  grid-template-columns: 24px 1fr 50px 50px;
+  align-items: center;
+  gap: 10px;
+}
+
 .list__item--header {
   display: grid;
   grid-template-columns: 1fr 50px 50px;
@@ -450,6 +552,16 @@ p {
   line-height: 21px;
   font-weight: 600;
   transition: none;
+}
+
+.list__field {
+  padding: 5px;
+  background-color: #fff;
+  border-radius: 5px;
+  color: #353535;
+  font-size: 17px;
+  width: 100%;
+  border: 1px solid #e3e3e3;
 }
 
 .list__item--header:hover {
