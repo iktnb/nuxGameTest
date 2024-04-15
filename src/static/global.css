@@ -8,8 +8,9 @@
 
 body {
   background-color: #545454;
-  color: coral;
+  color: #545454;
   font-family: Roboto;
+  font-size: 17px;
 }
 
 input {
