@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <div v-if="!isAuth" class="login">
+    <div v-if="!userData" class="login">
       <div class="login__header">
         <h4>description</h4>
       </div>
@@ -66,7 +66,7 @@
           <h2 class="card__title">User list</h2>
           <button
             class="button button--small button--add"
-            v-if="!newTotoStatus"
+            v-if="!newTodoStatus"
             @click="createNewTodoHandler"
           >
             Create
@@ -90,7 +90,7 @@
               <select
                 id="user-filter"
                 class="filters__field"
-                v-model="filtersFields.userId"
+                v-model.lazy="filtersFields.userId"
               >
                 <option :value="null">All</option>
                 <option v-for="user of users" :key="id" :value="user.id">
@@ -119,11 +119,13 @@
               <p class="list__title">Title</p>
               <p class="list__title">Status</p>
             </li>
-            <li class="list__item list__item--new" v-if="newTotoStatus">
+            <li class="list__item list__item--new" v-if="newTodoStatus">
               <span></span>
               <input
+                v-focus
                 v-model.trim="todo.title"
                 class="list__field"
+                placeholder="Enter todo title"
                 type="text"
                 @keyup.enter="addTodo"
                 @keyup.esc="resetNewTodo"
@@ -197,32 +199,45 @@
 </template>
 
 <script setup>
-import axis from "axios";
-import { computed, onMounted, ref, reactive, watch } from "vue";
+import axios from "axios";
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from "vue";
 import useCtrlAltF from "./composables/useCtrlAltF";
 import FavoriteIcon from "./components/FavoriteIcon.vue";
-import { onUnmounted } from "vue";
 
 const { startListening, stopListening } = useCtrlAltF(callYourMethod);
+
+const login = ref("");
+const phoneNumber = ref("");
+const userData = ref(null);
+const users = ref([]);
+const todos = ref([]);
+const favoriteIds = ref([]);
+const newTodoStatus = ref(false);
+
+const vFocus = {
+  mounted: (el) => el.focus(),
+};
+
+const filtersFields = reactive({
+  userId: null,
+  title: null,
+  completed: "all",
+});
+
 function callYourMethod() {
   login.value = "Samantha";
   phoneNumber.value = "1-463-123-4447";
 }
 
-const login = ref("");
 function loginHandler(event) {
   event.target.value = event.target.value.replace(/[^a-zA-Z]/g, "");
   login.value = event.target.value;
 }
-const phoneNumber = ref("");
+
 function phoneInputHandler(event) {
   event.target.value = event.target.value.replace(/[^\d+()-\s]/g, "");
 }
 
-const userData = ref(null);
-const isAuth = computed(() => userData.value);
-
-const users = ref([]);
 async function register() {
   const username = login.value;
   const phone = phoneNumber.value;
@@ -245,7 +260,7 @@ function findUserByUsernameAndPhone(users, username, phone) {
 
 async function fetchUsers() {
   try {
-    const response = await axis.get(
+    const response = await axios.get(
       "https://jsonplaceholder.typicode.com/users"
     );
 
@@ -255,10 +270,9 @@ async function fetchUsers() {
   }
 }
 
-const todos = ref([]);
 async function fetchTodo() {
   try {
-    const response = await axis.get(
+    const response = await axios.get(
       "https://jsonplaceholder.typicode.com/todos",
       {
         params: {
@@ -281,17 +295,7 @@ async function fetchTodo() {
     console.error(error);
   }
 }
-const filtersFields = reactive({
-  userId: null,
-  title: null,
-  completed: "all",
-});
 
-watch(filtersFields, () => {
-  fetchTodo();
-});
-
-const favoriteIds = ref([]);
 function toggleFavorite(todoId) {
   const index = favoriteIds.value.indexOf(todoId);
   if (index === -1) {
@@ -314,27 +318,26 @@ function getFavoriteIdsFromLocalStorage() {
   }
 }
 
-const newTotoStatus = ref(false);
-
 function createNewTodoHandler() {
-  newTotoStatus.value = !newTotoStatus.value;
+  newTodoStatus.value = !newTodoStatus.value;
 }
+
+function resetNewTodo() {
+  todo.title = "";
+  todo.completed = false;
+  newTodoStatus.value = false;
+}
+
 const todo = reactive({
   title: "",
   completed: false,
 });
 
-function resetNewTodo() {
-  todo.title = "";
-  todo.completed = false;
-  newTotoStatus.value = false;
-}
-
 async function addTodo() {
   if (todo.title.length < 1) return;
 
   try {
-    const { data } = await axis.post(
+    const { data } = await axios.post(
       "https://jsonplaceholder.typicode.com/todos",
       todo
     );
@@ -345,8 +348,12 @@ async function addTodo() {
     console.error(error);
   }
 }
+
+watch(filtersFields, () => {
+  fetchTodo();
+});
+
 onMounted(() => {
-  //register();
   fetchTodo();
   getFavoriteIdsFromLocalStorage();
   startListening();
@@ -505,7 +512,7 @@ p {
 .list {
   display: block;
   padding: 0 10px;
-  max-height: calc(100vh - 200px);
+  max-height: calc(100vh - 300px);
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -588,6 +595,11 @@ p {
   grid-template-columns: 24px 1fr 50px 50px;
   align-items: center;
   gap: 10px;
+  background-color: #353535;
+}
+
+.list__item--new:hover {
+  background-color: #353535;
 }
 
 .list__item--header {
