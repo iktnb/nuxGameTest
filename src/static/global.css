@@ -1,12 +1,28 @@
 *,
 *::before,
-*::after{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    background-color: aquamarine;
-    color: coral;
+  background-color: #545454;
+  color: coral;
+  font-family: Roboto;
+}
+
+input {
+  background: none;
+  border: none;
+  font: inherit;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  line-height: normal;
+  outline: none;
+  width: auto;
+  appearance: none;
+  box-shadow: none;
+  border-radius: 0;
 }
