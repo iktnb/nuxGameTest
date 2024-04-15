@@ -168,11 +168,8 @@
 
   <footer>
     <p>
-      © 2024. Усі права захищені. Створено з любов'ю та повагою до
-      <a href="https://uk.wikipedia.org/wiki/Бог" target="_blank" rel="noopener"
-        >Бога</a
-      >
-      та натхненням від iktnb.
+      © 2024. Цей веб-сайт розроблено виключно з метою демонстрації моїх навичок
+      і не має комерційних цілей.
     </p>
     <nav>
       <ul>
@@ -202,15 +199,22 @@
 <script setup>
 import axis from "axios";
 import { computed, onMounted, ref, reactive, watch } from "vue";
-
+import useCtrlAltF from "./composables/useCtrlAltF";
 import FavoriteIcon from "./components/FavoriteIcon.vue";
+import { onUnmounted } from "vue";
 
-const login = ref("Samantha");
+const { startListening, stopListening } = useCtrlAltF(callYourMethod);
+function callYourMethod() {
+  login.value = "Samantha";
+  phoneNumber.value = "1-463-123-4447";
+}
+
+const login = ref("");
 function loginHandler(event) {
   event.target.value = event.target.value.replace(/[^a-zA-Z]/g, "");
   login.value = event.target.value;
 }
-const phoneNumber = ref("1-463-123-4447");
+const phoneNumber = ref("");
 function phoneInputHandler(event) {
   event.target.value = event.target.value.replace(/[^\d+()-\s]/g, "");
 }
@@ -345,6 +349,11 @@ onMounted(() => {
   //register();
   fetchTodo();
   getFavoriteIdsFromLocalStorage();
+  startListening();
+});
+
+onUnmounted(() => {
+  stopListening();
 });
 </script>
 
