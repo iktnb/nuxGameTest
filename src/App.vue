@@ -167,35 +167,6 @@
       </div>
     </div>
   </div>
-
-  <footer>
-    <p>
-      © 2024. Цей веб-сайт розроблено виключно з метою демонстрації моїх навичок
-      і не має комерційних цілей.
-    </p>
-    <nav>
-      <ul>
-        <li>
-          <a href="https://github.com/iktnb" target="_blank" rel="noopener"
-            >Мій GitHub</a
-          >
-        </li>
-        <li>
-          <a
-            href="https://www.linkedin.com/in/yurii-basiyk/"
-            target="_blank"
-            rel="noopener"
-            >Мій LinkedIn</a
-          >
-        </li>
-        <li>
-          <a href="https://t.me/iktnb" target="_blank" rel="noopener"
-            >Мій Telegram</a
-          >
-        </li>
-      </ul>
-    </nav>
-  </footer>
 </template>
 
 <script setup>
