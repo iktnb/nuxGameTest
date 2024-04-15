@@ -188,9 +188,13 @@ async function fetchTodo() {
       {
         params: {
           userId: filtersFields.userId,
+          id:
+            filtersFields.completed === "favorites" ? favoriteIds.value : null,
+
           title: filtersFields.title || null,
           completed:
-            filtersFields.completed === "all"
+            filtersFields.completed === "all" ||
+            filtersFields.completed === "favorites"
               ? null
               : filtersFields.completed === "done",
         },
@@ -220,11 +224,9 @@ function toggleFavorite(todoId) {
   } else {
     favoriteIds.value.splice(index, 1);
   }
-}
 
-watchEffect(() => {
   setFavoriteIdsToLocalStorage();
-});
+}
 
 function setFavoriteIdsToLocalStorage() {
   localStorage.setItem("favoriteIds", JSON.stringify(favoriteIds.value));
@@ -461,6 +463,11 @@ p {
   justify-content: flex-end;
   padding: 10px;
   gap: 10px;
+
+  @media screen and (max-width: 1024px) {
+    padding: 5px;
+    justify-content: flex-start;
+  }
 }
 
 .filters__field {
@@ -471,6 +478,11 @@ p {
   font-size: 17px;
   width: 150px;
   border: 1px solid #e3e3e3;
+
+  @media (max-width: 1024px) {
+    width: 100px;
+    font-size: 14px;
+  }
 }
 
 .filters__wrapper {
