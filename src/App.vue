@@ -115,6 +115,7 @@
 
           <ul class="list">
             <li class="list__item list__item--header">
+              <span></span>
               <p class="list__title">Title</p>
               <p class="list__title">Status</p>
             </li>
@@ -164,11 +165,43 @@
       </div>
     </div>
   </div>
+
+  <footer>
+    <p>
+      © 2024. Усі права захищені. Створено з любов'ю та повагою до
+      <a href="https://uk.wikipedia.org/wiki/Бог" target="_blank" rel="noopener"
+        >Бога</a
+      >
+      та натхненням від iktnb.
+    </p>
+    <nav>
+      <ul>
+        <li>
+          <a href="https://github.com/iktnb" target="_blank" rel="noopener"
+            >Мій GitHub</a
+          >
+        </li>
+        <li>
+          <a
+            href="https://www.linkedin.com/in/yurii-basiyk/"
+            target="_blank"
+            rel="noopener"
+            >Мій LinkedIn</a
+          >
+        </li>
+        <li>
+          <a href="https://t.me/iktnb" target="_blank" rel="noopener"
+            >Мій Telegram</a
+          >
+        </li>
+      </ul>
+    </nav>
+  </footer>
 </template>
 
 <script setup>
 import axis from "axios";
-import { computed, onMounted, ref, reactive, watchEffect } from "vue";
+import { computed, onMounted, ref, reactive, watch } from "vue";
 
 import FavoriteIcon from "./components/FavoriteIcon.vue";
 
@@ -250,7 +283,7 @@ const filtersFields = reactive({
   completed: "all",
 });
 
-watchEffect(() => {
+watch(filtersFields, () => {
   fetchTodo();
 });
 
@@ -309,7 +342,7 @@ async function addTodo() {
   }
 }
 onMounted(() => {
-  register();
+  //register();
   fetchTodo();
   getFavoriteIdsFromLocalStorage();
 });
@@ -421,7 +454,7 @@ p {
   border-radius: 10px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
   height: fit-content;
-  max-height: 95vh;
+  max-height: 80vh;
   margin: 20px;
   gap: 10px;
   overflow: hidden;
@@ -550,7 +583,7 @@ p {
 
 .list__item--header {
   display: grid;
-  grid-template-columns: 1fr 50px 50px;
+  grid-template-columns: 24px 1fr 50px 50px;
   padding: 10px;
 
   color: #fff;
@@ -613,5 +646,25 @@ p {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #333;
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+}
+
+footer a {
+  color: #fff;
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+footer a:hover {
+  text-decoration: underline;
 }
 </style>
