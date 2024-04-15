@@ -4,13 +4,21 @@
   "description": "",
   "scripts": {
     "dev": "webpack serve --config config/webpack.dev.js",
-    "prod": "webpack --config config/webpack.prod.js"
+    "build": "webpack --config config/webpack.prod.js",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "keywords": [],
   "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iktnb/nuxGameTest.git"
+  },
+  "homepage": "http://iktnb.github.io/nuxGameTest",
   "license": "ISC",
   "devDependencies": {
     "css-loader": "^6.7.3",
+    "gh-pages": "^6.1.1",
     "html-webpack-plugin": "^5.5.1",
     "vue": "^3.2.47",
     "vue-loader": "^17.1.0",
