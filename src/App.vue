@@ -62,9 +62,61 @@
         </div>
 
         <div class="card__content">
+          <div class="filters">
+            <div class="filters__wrapper">
+              <label for="title-filter">Title:</label>
+              <input
+                id="title-filter"
+                class="filters__field"
+                v-model="filtersFields.title"
+                type="text"
+              />
+            </div>
+
+            <div class="filters__wrapper">
+              <label for="user-filter">User id:</label>
+              <select
+                id="user-filter"
+                class="filters__field"
+                v-model="filtersFields.userId"
+              >
+                <option :value="null">All</option>
+                <option v-for="user of users" :key="id" :value="user.id">
+                  {{ user.id }}
+                </option>
+              </select>
+            </div>
+            <div class="filters__wrapper">
+              <label for="todo-filter">Status:</label>
+              <select
+                id="todo-filter"
+                class="filters__field"
+                v-model="filtersFields.completed"
+              >
+                <option value="all">All</option>
+                <option value="done">Completed</option>
+                <option value="todo">Uncompleted</option>
+                <option value="favorites">Favorites</option>
+              </select>
+            </div>
+          </div>
+
           <ul class="list">
+            <li class="list__item list__item--header">
+              <p class="list__title">Title</p>
+              <p class="list__title">Status</p>
+            </li>
             <li class="list__item" v-for="todo of todos" :key="todo.id">
+              <FavoriteIcon
+                class="list__icon"
+                :class="{
+                  'list__icon--favorite': favoriteIds.includes(todo.id),
+                }"
+                :favorite="favoriteIds.includes(todo.id)"
+                @click="toggleFavorite(todo.id)"
+              />
               <p class="list__title">{{ todo.title }}</p>
+
               <span :class="`list__badge ${todo.completed ? 'todo' : 'done'}`">
                 {{ todo.completed ? "Done" : "Todo" }}
               </span>
@@ -78,7 +130,9 @@
 
 <script setup>
 import axis from "axios";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, reactive, watchEffect } from "vue";
+
+import FavoriteIcon from "./components/FavoriteIcon.vue";
 
 const login = ref("Samantha");
 function loginHandler(event) {
@@ -93,12 +147,13 @@ function phoneInputHandler(event) {
 const userData = ref(null);
 const isAuth = computed(() => userData.value);
 
+const users = ref([]);
 async function register() {
   const username = login.value;
   const phone = phoneNumber.value;
 
-  const users = await fetchUsers();
-  const user = findUserByUsernameAndPhone(users, username, phone);
+  await fetchUsers();
+  const user = findUserByUsernameAndPhone(users.value, username, phone);
   if (!user) {
     alert("Login or phone number is incorrect");
     return;
@@ -119,7 +174,7 @@ async function fetchUsers() {
       "https://jsonplaceholder.typicode.com/users"
     );
 
-    return response.data;
+    users.value = response.data;
   } catch (error) {
     console.error(error);
   }
@@ -129,7 +184,17 @@ const todos = ref([]);
 async function fetchTodo() {
   try {
     const response = await axis.get(
-      "https://jsonplaceholder.typicode.com/todos"
+      "https://jsonplaceholder.typicode.com/todos",
+      {
+        params: {
+          userId: filtersFields.userId,
+          title: filtersFields.title || null,
+          completed:
+            filtersFields.completed === "all"
+              ? null
+              : filtersFields.completed === "done",
+        },
+      }
     );
 
     todos.value = response.data;
@@ -137,10 +202,45 @@ async function fetchTodo() {
     console.error(error);
   }
 }
+const filtersFields = reactive({
+  userId: null,
+  title: null,
+  completed: "all",
+});
+
+watchEffect(() => {
+  fetchTodo();
+});
+
+const favoriteIds = ref([]);
+function toggleFavorite(todoId) {
+  const index = favoriteIds.value.indexOf(todoId);
+  if (index === -1) {
+    favoriteIds.value.push(todoId);
+  } else {
+    favoriteIds.value.splice(index, 1);
+  }
+}
+
+watchEffect(() => {
+  setFavoriteIdsToLocalStorage();
+});
+
+function setFavoriteIdsToLocalStorage() {
+  localStorage.setItem("favoriteIds", JSON.stringify(favoriteIds.value));
+}
+
+function getFavoriteIdsFromLocalStorage() {
+  const favoriteIdsFromLocalStorage = localStorage.getItem("favoriteIds");
+  if (favoriteIdsFromLocalStorage) {
+    favoriteIds.value = JSON.parse(favoriteIdsFromLocalStorage);
+  }
+}
 
 onMounted(() => {
   register();
   fetchTodo();
+  getFavoriteIdsFromLocalStorage();
 });
 </script>
 
@@ -162,6 +262,13 @@ p {
   display: grid;
   grid-template-columns: 0.2fr 0.8fr;
   gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 }
 
 .login {
@@ -246,6 +353,7 @@ p {
   padding: 10px;
   background-color: #fff;
   color: #333;
+  height: fit-content;
 }
 
 .card .section-title {
@@ -254,10 +362,11 @@ p {
 }
 
 .list {
+  display: block;
   padding: 0 10px;
+  max-height: calc(100vh - 200px);
   overflow-x: hidden;
-  overflow-y: scroll;
-  height: 85vh;
+  overflow-y: auto;
 }
 
 .list__item {
@@ -270,7 +379,8 @@ p {
   margin: 5px 0;
   border-bottom: 1px solid #e3e3e3;
   display: grid;
-  grid-template-columns: 1fr 50px;
+  grid-template-columns: 24px 1fr 50px;
+  gap: 10px;
   transition: all 0.3s;
 }
 
@@ -305,5 +415,73 @@ p {
   line-height: 21px;
   font-weight: 600;
   color: #333;
+  white-space: nowrap;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.list__icon {
+  opacity: 0;
+  transition: all 0.3s;
+
+  @media (max-width: 1024px) {
+    opacity: 1;
+  }
+}
+
+.list__icon--favorite {
+  opacity: 1;
+}
+
+.list__item:hover .list__icon {
+  opacity: 1;
+}
+
+.list__item--header {
+  display: grid;
+  grid-template-columns: 1fr 50px 50px;
+  padding: 10px;
+
+  color: #fff;
+  font-size: 17px;
+  line-height: 21px;
+  font-weight: 600;
+  transition: none;
+}
+
+.list__item--header:hover {
+  transform: none;
+  background-color: #fff;
+  box-shadow: none;
+}
+
+.filters {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+  gap: 10px;
+}
+
+.filters__field {
+  padding: 5px;
+  background-color: #fff;
+  border-radius: 5px;
+  color: #353535;
+  font-size: 17px;
+  width: 150px;
+  border: 1px solid #e3e3e3;
+}
+
+.filters__wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.list__checkbox-whapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 </style>
