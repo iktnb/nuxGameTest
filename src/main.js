@@ -7,4 +7,4 @@ import './static/global.css'    //Import css files as modules
 const pinia = createPinia()
 
 
-createApp(App).mount('#app');
+createApp(App).use(pinia).mount('#app');
