@@ -36,6 +36,7 @@ const logout = () => {
 .header a {
   color: #333;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .router-link-active {
