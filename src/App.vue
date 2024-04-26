@@ -18,7 +18,6 @@ const userStore = useUsersStore();
 const router = useRouter();
 
 onMounted(() => {
-  console.log("I WORK");
   const user = userStore.readFromLocalStorage();
   if (user) {
     userStore.login(user);
