@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 
 export default function useCtrlAltF(methodToCall) {
     const ctrlPressed = ref(false);
@@ -39,8 +39,6 @@ export default function useCtrlAltF(methodToCall) {
         window.removeEventListener('keyup', handleKeyUp);
     };
 
-    return {
-        startListening,
-        stopListening
-    };
+    onMounted(startListening);
+    onUnmounted(stopListening);
 }

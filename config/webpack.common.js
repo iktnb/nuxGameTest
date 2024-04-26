@@ -8,6 +8,13 @@ const __src = path.resolve(__base, 'src');
 
 module.exports = {
     //Entry: main file that init our application
+
+    resolve: {
+        alias: {
+            '@': path.resolve(__src),
+        }
+    },
+
     entry: path.resolve(__src, 'main.js'),
 
     //Output: result of the bundle after webpack run
@@ -22,7 +29,7 @@ module.exports = {
         new HtmlWebpackPlugin({
             title: 'Minimal Vue Webpack',
             favicon: path.resolve(__src, 'static', 'favicon.ico'),
-            template: path.resolve(__src, 'templates', 'index.html'),
+            template: path.resolve(__src, 'index.html'),
         }),
         new VueLoaderPlugin()
     ],

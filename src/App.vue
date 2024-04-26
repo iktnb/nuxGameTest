@@ -1,341 +1,39 @@
 <template>
   <div class="page">
-    <div v-if="!userData" class="login">
-      <div class="login__header">
-        <h4>description</h4>
-      </div>
+    <VHeader />
 
-      <div class="login__body">
-        <p>description</p>
-
-        <div class="field">
-          <input
-            v-model="login"
-            @input="loginHandler"
-            type="text"
-            id="login"
-            placeholder="Username"
-          />
-        </div>
-
-        <div class="field">
-          <input
-            v-model="phoneNumber"
-            @input="phoneInputHandler"
-            type="text"
-            id="login"
-            placeholder="Phone number"
-          />
-        </div>
-
-        <button @click="register" class="button">Register</button>
-      </div>
-    </div>
-
-    <div v-else class="auth-layout">
-      <div class="card">
-        <div class="card__header">
-          <h2 class="card__title">{{ userData.name }}</h2>
-        </div>
-        <div class="card__content">
-          <p><strong>Username:</strong> {{ userData.username }}</p>
-          <p>
-            <strong>Email:</strong>
-            <a href="mailto:{{ userData.email }}">{{ userData.email }}</a>
-          </p>
-          <p>
-            <strong>Phone:</strong>
-            <a href="tel:{{ userData.phone }}">{{ userData.phone }}</a>
-          </p>
-          <p class="section-title">Address:</p>
-          <p><strong>Street:</strong> {{ userData.address.street }}</p>
-          <p><strong>Suite:</strong> {{ userData.address.suite }}</p>
-          <p><strong>City:</strong> {{ userData.address.city }}</p>
-          <p><strong>Zipcode:</strong> {{ userData.address.zipcode }}</p>
-          <p class="section-title">Company:</p>
-          <p><strong>Name:</strong> {{ userData.company.name }}</p>
-          <p>
-            <strong>Catchphrase:</strong> {{ userData.company.catchPhrase }}
-          </p>
-          <p><strong>Business:</strong> {{ userData.company.bs }}</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card__header flex items-center">
-          <h2 class="card__title">User list</h2>
-          <button
-            class="button button--small button--add"
-            v-if="!newTodoStatus"
-            @click="createNewTodoHandler"
-          >
-            Create
-          </button>
-        </div>
-
-        <div class="card__content">
-          <div class="filters">
-            <div class="filters__wrapper">
-              <label for="title-filter">Title:</label>
-              <input
-                id="title-filter"
-                class="filters__field"
-                v-model="filtersFields.title"
-                type="text"
-              />
-            </div>
-
-            <div class="filters__wrapper">
-              <label for="user-filter">User id:</label>
-              <select
-                id="user-filter"
-                class="filters__field"
-                v-model.lazy="filtersFields.userId"
-              >
-                <option :value="null">All</option>
-                <option v-for="user of users" :key="id" :value="user.id">
-                  {{ user.id }}
-                </option>
-              </select>
-            </div>
-            <div class="filters__wrapper">
-              <label for="todo-filter">Status:</label>
-              <select
-                id="todo-filter"
-                class="filters__field"
-                v-model="filtersFields.completed"
-              >
-                <option value="all">All</option>
-                <option value="done">Completed</option>
-                <option value="todo">Uncompleted</option>
-                <option value="favorites">Favorites</option>
-              </select>
-            </div>
-          </div>
-
-          <ul class="list">
-            <li class="list__item list__item--header">
-              <span></span>
-              <p class="list__title">Title</p>
-              <p class="list__title">Status</p>
-            </li>
-            <li class="list__item list__item--new" v-if="newTodoStatus">
-              <span></span>
-              <input
-                v-focus
-                v-model.trim="todo.title"
-                class="list__field"
-                placeholder="Enter todo title"
-                type="text"
-                @keyup.enter="addTodo"
-                @keyup.esc="resetNewTodo"
-              />
-
-              <span
-                @click="() => (todo.completed = !todo.completed)"
-                :class="`list__badge list__badge--new ${
-                  todo.completed ? 'todo' : 'done'
-                }`"
-              >
-                {{ todo.completed ? "Done" : "Todo" }}
-              </span>
-              <button
-                :disabled="todo.title.length < 1"
-                @click="addTodo"
-                class="button button--small"
-              >
-                Save
-              </button>
-            </li>
-            <li class="list__item" v-for="todo of todos" :key="todo.id">
-              <FavoriteIcon
-                class="list__icon"
-                :class="{
-                  'list__icon--favorite': favoriteIds.includes(todo.id),
-                }"
-                :favorite="favoriteIds.includes(todo.id)"
-                @click="toggleFavorite(todo.id)"
-              />
-              <p class="list__title">{{ todo.title }}</p>
-
-              <span :class="`list__badge ${todo.completed ? 'todo' : 'done'}`">
-                {{ todo.completed ? "Done" : "Todo" }}
-              </span>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+    <RouterView />
   </div>
 </template>
 
 <script setup>
-import axios from "axios";
-import { ref, reactive, computed, onMounted, onUnmounted, watch } from "vue";
-import useCtrlAltF from "./composables/useCtrlAltF";
-import FavoriteIcon from "./components/FavoriteIcon.vue";
+import { onMounted } from "vue";
+import { useRouter } from "vue-router";
 
-const { startListening, stopListening } = useCtrlAltF(callYourMethod);
+import VHeader from "@/components/VHeader.vue";
+import { useUsersStore } from "@/stores/users";
 
-const login = ref("");
-const phoneNumber = ref("");
-const userData = ref(null);
-const users = ref([]);
-const todos = ref([]);
-const favoriteIds = ref([]);
-const newTodoStatus = ref(false);
+const userStore = useUsersStore();
 
-const vFocus = {
-  mounted: (el) => el.focus(),
-};
-
-const filtersFields = reactive({
-  userId: null,
-  title: null,
-  completed: "all",
-});
-
-function callYourMethod() {
-  login.value = "Samantha";
-  phoneNumber.value = "1-463-123-4447";
-}
-
-function loginHandler(event) {
-  event.target.value = event.target.value.replace(/[^a-zA-Z]/g, "");
-  login.value = event.target.value;
-}
-
-function phoneInputHandler(event) {
-  event.target.value = event.target.value.replace(/[^\d+()-\s]/g, "");
-}
-
-async function register() {
-  const username = login.value;
-  const phone = phoneNumber.value;
-
-  await fetchUsers();
-  const user = findUserByUsernameAndPhone(users.value, username, phone);
-  if (!user) {
-    alert("Login or phone number is incorrect");
-    return;
-  }
-  userData.value = user;
-  fetchTodo();
-}
-
-function findUserByUsernameAndPhone(users, username, phone) {
-  return users.find(
-    (user) => user.username === username && user.phone === phone
-  );
-}
-
-async function fetchUsers() {
-  try {
-    const response = await axios.get(
-      "https://jsonplaceholder.typicode.com/users"
-    );
-
-    users.value = response.data;
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-async function fetchTodo() {
-  try {
-    const response = await axios.get(
-      "https://jsonplaceholder.typicode.com/todos",
-      {
-        params: {
-          userId: filtersFields.userId,
-          id:
-            filtersFields.completed === "favorites" ? favoriteIds.value : null,
-
-          title: filtersFields.title || null,
-          completed:
-            filtersFields.completed === "all" ||
-            filtersFields.completed === "favorites"
-              ? null
-              : filtersFields.completed === "done",
-        },
-      }
-    );
-
-    todos.value = response.data;
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-function toggleFavorite(todoId) {
-  const index = favoriteIds.value.indexOf(todoId);
-  if (index === -1) {
-    favoriteIds.value.push(todoId);
-  } else {
-    favoriteIds.value.splice(index, 1);
-  }
-
-  setFavoriteIdsToLocalStorage();
-}
-
-function setFavoriteIdsToLocalStorage() {
-  localStorage.setItem("favoriteIds", JSON.stringify(favoriteIds.value));
-}
-
-function getFavoriteIdsFromLocalStorage() {
-  const favoriteIdsFromLocalStorage = localStorage.getItem("favoriteIds");
-  if (favoriteIdsFromLocalStorage) {
-    favoriteIds.value = JSON.parse(favoriteIdsFromLocalStorage);
-  }
-}
-
-function createNewTodoHandler() {
-  newTodoStatus.value = !newTodoStatus.value;
-}
-
-function resetNewTodo() {
-  todo.title = "";
-  todo.completed = false;
-  newTodoStatus.value = false;
-}
-
-const todo = reactive({
-  title: "",
-  completed: false,
-});
-
-async function addTodo() {
-  if (todo.title.length < 1) return;
-
-  try {
-    const { data } = await axios.post(
-      "https://jsonplaceholder.typicode.com/todos",
-      todo
-    );
-
-    todos.value.unshift(data);
-    resetNewTodo();
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-watch(filtersFields, () => {
-  fetchTodo();
-});
+const router = useRouter();
 
 onMounted(() => {
-  fetchTodo();
-  getFavoriteIdsFromLocalStorage();
-  startListening();
-});
-
-onUnmounted(() => {
-  stopListening();
+  console.log("I WORK");
+  const user = userStore.readFromLocalStorage();
+  if (user) {
+    userStore.login(user);
+  } else {
+    router.push({ name: "Login" });
+  }
 });
 </script>
 
-<style scoped>
+<style>
+#app {
+  max-height: 100vh;
+  overflow: hidden;
+}
+
 h4 {
   font-family: Roboto;
   font-size: 17px;
@@ -347,12 +45,6 @@ h4 {
 
 p {
   font-size: 15px;
-}
-
-.auth-layout {
-  display: grid;
-  grid-template-columns: 0.2fr 0.8fr;
-  gap: 20px;
 }
 
 @media (max-width: 1024px) {
@@ -388,14 +80,33 @@ p {
   padding: 15px 25px;
   display: flex;
   flex-direction: column;
+  width: 100%;
   gap: 20px;
 }
 .field {
-  padding: 10px;
-  background-color: #fff;
+  background-color: transparent;
   border-radius: 5px;
-  color: #353535;
   font-size: 17px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.field__label {
+  font-size: 17px;
+  line-height: 21px;
+  color: #ffffff;
+}
+
+.field__input {
+  border-radius: 5px;
+  padding: 4px;
+  color: #353535;
+  font-size: 18px;
+  background-color: #ffffff;
+  border: 1px solid #e3e3e3;
+  width: 100%;
 }
 
 .field::placeholder {
@@ -441,7 +152,6 @@ p {
   border-radius: 10px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
   height: fit-content;
-  max-height: 80vh;
   margin: 20px;
   gap: 10px;
   overflow: hidden;
@@ -463,10 +173,6 @@ p {
   align-items: center;
 }
 
-.card__title {
-  color: #fff;
-}
-
 .card__content {
   padding: 10px;
   background-color: #fff;
@@ -474,17 +180,11 @@ p {
   height: fit-content;
 }
 
-.card .section-title {
-  font-weight: bold;
-  color: #555;
-  margin-top: 10px;
-}
-
 .list {
   display: block;
   padding: 0 10px;
-  max-height: calc(100vh - 300px);
-  overflow-x: hidden;
+  height: 100%;
+  max-height: 75vh;
   overflow-y: auto;
 }
 
@@ -498,7 +198,7 @@ p {
   margin: 5px 0;
   border-bottom: 1px solid #e3e3e3;
   display: grid;
-  grid-template-columns: 24px 1fr 50px;
+  grid-template-columns: 24px 1fr 50px 50px;
   gap: 10px;
   transition: all 0.3s;
 }
@@ -519,6 +219,7 @@ p {
   color: #fff;
   font-size: 15px;
   text-align: center;
+  cursor: pointer;
 }
 
 .list__badge--new {
@@ -573,6 +274,10 @@ p {
   background-color: #353535;
 }
 
+.transparent {
+  opacity: 0;
+}
+
 .list__item--header {
   display: grid;
   grid-template-columns: 24px 1fr 50px 50px;
@@ -604,13 +309,7 @@ p {
 .filters {
   display: flex;
   justify-content: flex-end;
-  padding: 10px;
   gap: 10px;
-
-  @media screen and (max-width: 1024px) {
-    padding: 5px;
-    justify-content: flex-start;
-  }
 }
 
 .filters__field {
@@ -640,23 +339,9 @@ p {
   gap: 10px;
 }
 
-footer {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background-color: #333;
-  color: #fff;
-  padding: 20px;
-  text-align: center;
-}
-
-footer a {
-  color: #fff;
-  text-decoration: none;
-  margin: 0 10px;
-}
-
-footer a:hover {
-  text-decoration: underline;
+.list__item--trashcan {
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
 }
 </style>
