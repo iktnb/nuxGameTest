@@ -27,7 +27,7 @@ module.exports = {
     //Plugins to help and include additionals functionalities to webpack
     plugins: [
         new HtmlWebpackPlugin({
-            title: 'Minimal Vue Webpack',
+            title: 'NuxGame Todo App',
             favicon: path.resolve(__src, 'static', 'favicon.ico'),
             template: path.resolve(__src, 'index.html'),
         }),
